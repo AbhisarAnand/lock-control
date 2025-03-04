@@ -79,14 +79,34 @@ def provision_pico():
     return True
 
 def eject_pico():
-    """ Eject the PicoW after provisioning. """
+    """ Eject the PicoW after provisioning safely. """
     print("Ejecting PicoW...")
+
     try:
-        subprocess.run(["sync"], check=True)  # Ensure all writes are completed
-        subprocess.run(["udisksctl", "unmount", "-b", "/dev/sda1"], check=True)
-        print("PicoW safely ejected!")
-    except subprocess.CalledProcessError:
-        print("Warning: Failed to eject PicoW, but provisioning is done.")
+        # Ensure all writes are fully committed
+        subprocess.run(["sync"], check=True)
+
+        # Properly unmount the Pico
+        unmount_result = subprocess.run(["udisksctl", "unmount", "-b", "/dev/sda1"], capture_output=True, text=True)
+
+        if unmount_result.returncode == 0:
+            print("PicoW successfully unmounted.")
+
+            # Eject the Pico to ensure a clean removal
+            eject_result = subprocess.run(["udisksctl", "power-off", "-b", "/dev/sda1"], capture_output=True, text=True)
+
+            if eject_result.returncode == 0:
+                print("PicoW safely ejected!")
+            else:
+                print(f"Warning: Failed to fully power off the Pico. {eject_result.stderr}")
+        else:
+            print(f"Warning: Unmount failed, but proceeding. {unmount_result.stderr}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error ejecting PicoW: {e}")
+
+    # Add a delay to ensure it fully powers off before unplugging
+    time.sleep(2)
 
 def main():
     print("Starting PicoW Auto-Provisioning Script (Running 24/7)...")
