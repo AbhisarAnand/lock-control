@@ -63,18 +63,18 @@ def provision_pico():
 
     print(f"{CONFIG_FILE} added with WebSocket URL: {websocket_url}")
 
-    # Copy firmware if available
-    firmware_path = Path(FIRMWARE_FILE)
-    if firmware_path.exists():
-        shutil.copy(firmware_path, PICO_MOUNT_PATH)
-        print(f"Flashed {FIRMWARE_FILE} onto PicoW.")
-
     # Copy the script and rename it for auto-run
     script_src = Path(PICO_SCRIPT)
     script_dest = Path(PICO_MOUNT_PATH) / PICO_RUN_SCRIPT
     if script_src.exists():
         shutil.copy(script_src, script_dest)
         print(f"Copied {PICO_SCRIPT} as {PICO_RUN_SCRIPT} for auto-start.")
+
+    # Copy firmware if available
+    firmware_path = Path(FIRMWARE_FILE)
+    if firmware_path.exists():
+        shutil.copy(firmware_path, PICO_MOUNT_PATH)
+        print(f"Flashed {FIRMWARE_FILE} onto PicoW.")
 
     return True
 
@@ -114,7 +114,8 @@ def main():
         print("Waiting for a PicoW...")
         detect_pico()
         if provision_pico():
-            eject_pico()
+            # eject_pico()
+            pass
         print("Restarting detection loop...")  
         time.sleep(CHECK_INTERVAL)  # Small delay before next check
 
