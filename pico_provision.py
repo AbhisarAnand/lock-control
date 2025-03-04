@@ -11,8 +11,11 @@ from pathlib import Path
 PICO_MOUNT_PATH = f"/media/{getpass.getuser()}/RPI-RP2"  # Detects current user
 CONFIG_FILE = "config.json"
 FIRMWARE_FILE = "pico_firmware.uf2"  # Firmware file for PicoW
+PICO_SCRIPT = "pico.py"  # Script to run on Pico
+PICO_RUN_SCRIPT = "main.py"  # Rename it so it runs on startup
 CHECK_INTERVAL = 5  # Time (seconds) between checking for new devices
 
+# Wi-Fi Credentials
 SSID = "YourWiFiSSID"
 PASSWORD = "YourWiFiPassword"
 
@@ -26,7 +29,7 @@ def get_raspberry_pi_ip():
         return ip_address
     except Exception as e:
         print(f"Error detecting Raspberry Pi IP: {e}")
-        return "ws://raspberrypi:8080"  # Fallback to hostname if IP detection fails
+        return "raspberrypi"  # Fallback to hostname if IP detection fails
 
 def detect_pico():
     """ Continuously check for a PicoW connection. """
@@ -65,6 +68,13 @@ def provision_pico():
     if firmware_path.exists():
         shutil.copy(firmware_path, PICO_MOUNT_PATH)
         print(f"Flashed {FIRMWARE_FILE} onto PicoW.")
+
+    # Copy the script and rename it for auto-run
+    script_src = Path(PICO_SCRIPT)
+    script_dest = Path(PICO_MOUNT_PATH) / PICO_RUN_SCRIPT
+    if script_src.exists():
+        shutil.copy(script_src, script_dest)
+        print(f"Copied {PICO_SCRIPT} as {PICO_RUN_SCRIPT} for auto-start.")
 
     return True
 
